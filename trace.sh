@@ -1,0 +1,1 @@
+# /Volumes/Dev/elyir-mower/EspArduinoExceptionDecoder-master/decoder.py  -p ESP32 -t  ~/.platformio/packages/toolchain-xtensa32 -e ./.pioenvs/myesp32/firmware.elf -f ./stacktrace.txt

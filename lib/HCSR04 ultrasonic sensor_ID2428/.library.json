@@ -1,0 +1,50 @@
+{
+    "name": "HCSR04 ultrasonic sensor", 
+    "version": "2.0.2", 
+    "keywords": [
+        "sensors"
+    ], 
+    "description": "Allows an Arduino board to use HCSR04 module.", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam", 
+        "espressif32", 
+        "espressif8266", 
+        "intel_arc32", 
+        "microchippic32", 
+        "nordicnrf51", 
+        "nordicnrf52", 
+        "ststm32", 
+        "ststm8", 
+        "teensy", 
+        "timsp430"
+    ], 
+    "authors": [
+        {
+            "email": null, 
+            "url": null, 
+            "maintainer": true, 
+            "name": "gamegine"
+        }
+    ], 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/gamgine/HCSR04-ultrasonic-sensor-lib"
+    }, 
+    "homepage": "https://github.com/gamegine/HCSR04-ultrasonic-sensor-lib", 
+    "export": {
+        "include": null, 
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ]
+    }, 
+    "id": 2428
+}

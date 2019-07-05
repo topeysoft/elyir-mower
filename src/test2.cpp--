@@ -1,0 +1,24 @@
+#include <ElyirConfig.h>
+#include <ProximitySensor.h>
+
+ProximitySensor sensors; //initialisation class HCSR04 (trig pin , echo pins, number of sensors)
+void obstructed(bool left, bool center, bool right){
+     Serial.print("THERE'S AN OBSTRUCTION !!! \n --------------------------- \n ");
+     Serial.print("LEFT Distance: ");
+        Serial.println(sensors.left_distance());
+        Serial.print("CENTER Distance: ");
+        Serial.println(sensors.center_distance());
+        Serial.print("RIGHT Distance: ");
+        Serial.println(sensors.right_distance());
+}
+void setup()
+{
+    Serial.begin(9600);
+    sensors.setup(PROXIMITY_SENSOR_LEFT_PIN, PROXIMITY_SENSOR_CENTER_PIN, PROXIMITY_SENSOR_RIGHT_PIN, PROXIMITY_SENSOR_COMMON, 10);
+    sensors.setOnBlockedCallback(&obstructed);
+}
+
+void loop()
+{
+    sensors.run();
+}

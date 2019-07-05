@@ -1,0 +1,182 @@
+//Written by Ahmet Burkay KIRNIK
+//TR_CapaFenLisesi
+//Measure Angle with a MPU-6050(GY-521)
+
+// #include<Wire.h>
+
+#include <Arduino.h>
+#include "ElyirConfig.h"
+#include "HeightAdjuster.h"
+
+#include "timer.h"
+#include "timerManager.h"
+#include "timerManager.h"
+
+void runTest();
+void setupWheels();
+void testProgress();
+void setupTimer();
+void spinner();
+
+HeightAdjuster _adjuster;
+
+//Timer object
+Timer testTimer;
+Timer progressTimer;
+Timer spinnerTimer;
+int currentTest = 1;
+bool testInProgress = false;
+bool highSpeed = false;
+enum
+{
+  H_LOW_CUT = 1,
+  H_MEDIUM_CUT,
+  H_HIGH_CUT,
+  H_CHARGE,
+  ALL_DONE,
+};
+
+void setupServo()
+{
+  _adjuster.setup(CUT_HEIGHT_SERVO_PIN
+    , CUT_HEIGHT_LOW
+    , CUT_HEIGHT_MEDIUM
+    , CUT_HEIGHT_HIGH
+    , CUT_HEIGHT_CHARGE
+    );
+}
+void setupTimer()
+{
+  testTimer.setInterval(3000);
+  progressTimer.setInterval(1000);
+  spinnerTimer.setInterval(50);
+
+  //Set our callback function
+  testTimer.setCallback(runTest);
+  progressTimer.setCallback(testProgress);
+  spinnerTimer.setCallback(spinner);
+
+  //Start the timer
+  // timer.start();
+  TimerManager::instance().start();
+}
+
+void runTest()
+{
+  // if(currentTest != ALL_DONE){
+  //   if(highSpeed) {
+  //     Serial.println("\n");
+  //     Serial.print("-- Full Speed -- ");
+  //   } else {
+  //     Serial.println("\n");
+  //     Serial.print("-- Half Speed -- ");
+  //   }
+  //     // Serial.println("------------------------\n");
+  // }
+   
+  switch (currentTest)
+  {
+  case H_LOW_CUT:
+    testInProgress = true;
+    Serial.println("");
+    Serial.print("");
+    Serial.println("Testing Height LOW ");
+    _adjuster.setLowCut();
+    break;
+  case H_MEDIUM_CUT:
+    testInProgress = true;
+    Serial.println("");
+    Serial.print("");
+    Serial.println("Testing Height MEDIUM ");
+    _adjuster.setMediumCut();
+    break;
+  case H_HIGH_CUT:
+    testInProgress = true;
+    Serial.println("");
+    Serial.print("");
+    Serial.println("Testing Height HIGH ");
+    _adjuster.setHighCut();
+    break;
+  case H_CHARGE:
+    testInProgress = true;
+    Serial.println("");
+    Serial.print("");
+    Serial.println("Testing Height CHARGE ");
+    _adjuster.setChargeHeight();
+    break;
+  
+  case ALL_DONE:
+    testInProgress = false;
+    Serial.println("");
+    Serial.print("");
+    
+    Serial.print("Tests Completed, Sarting over \n:----------------------------:");
+    Serial.println(" ");
+    currentTest = 0;
+    break;
+  default:
+    testInProgress = false;
+    break;
+  }
+  // if(testInProgress){
+  currentTest++;
+  // }
+}
+
+void testProgress()
+{
+  if (testInProgress)
+  {
+    Serial.print("=========");
+  }
+}
+int spin = 0;
+void spinner()
+{
+  if (testInProgress)
+  {
+
+    switch (spin)
+    {
+    case 0:
+      Serial.print('\b');
+      Serial.print("-");
+      break;
+    case 1:
+      Serial.print('\b');
+      Serial.print("|");
+      break;
+    case 2:
+      Serial.print('\b');
+      Serial.print("/");
+      break;
+    case 3:
+      Serial.print('\b');
+      Serial.print("-");
+      break;
+    case 4:
+      Serial.print('\b');
+      Serial.print("|");
+      break;
+    default:
+      spin = -1;
+      break;
+    }
+    spin++;
+  }
+}
+
+void setup()
+{
+
+  Serial.begin(LOG_BAUD_RATE);
+  setupServo();
+  setupTimer();
+  Serial.println("Elyir Mower Test :::: Cut Height Adjuster \n----------------------------------------- \n-----------------------------------------");
+  runTest();
+}
+void loop()
+{
+
+  TimerManager::instance().update();
+}

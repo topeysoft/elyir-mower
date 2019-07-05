@@ -1,0 +1,234 @@
+/*
+ * Created by K. Suwatchai (Mobizt)
+ * 
+ * Email: k_suwatchai@hotmail.com
+ * 
+ * Github: https://github.com/mobizt
+ * 
+ * Copyright (c) 2019 mobizt
+ *
+*/
+
+//This example shows how to read, store and update database using get, set, push and update functions.
+//Required HTTPClientESP32Ex library to be installed  https://github.com/mobizt/HTTPClientESP32Ex
+
+#include <WiFi.h>
+#include "FirebaseESP32.h"
+#include "ElyirConfig.h"
+#include "Esp32Comm.h"
+#include "ArduinoJson.h"
+
+#define FIREBASE_HOST "elyir-d4ede.firebaseio.com" //Do not include https:// in FIREBASE_HOST
+#define FIREBASE_AUTH "kyKn0ZflOAwi6NYdekTMnjBYlv6CqwYh57Gpf7ZH"
+#define WIFI_SSID "VirusBroadcast"
+#define WIFI_PASSWORD "6185810376"
+
+Esp32Comm espComm;
+
+//Define Firebase Data objects
+FirebaseData firebaseLocationData;
+FirebaseData firebaseMotionCommands;
+
+unsigned long sendDataPrevMillis1;
+
+uint16_t count1;
+
+String json;
+
+
+void streamTimeoutCallback(bool timeout)
+{
+  if (timeout)
+  {
+    Serial.println();
+    Serial.println("Stream Data 1 timeout, resume streaming...");
+    Serial.println();
+  }
+}
+
+void streamCallback(StreamData sData)
+{
+  Serial.println("Data availabe from database...");
+  Serial.println("STREAM PATH: " + sData.streamPath());
+  Serial.println("EVENT PATH: " + sData.dataPath());
+  Serial.println("DATA TYPE: " + sData.dataType());
+  Serial.println("EVENT TYPE: " + sData.eventType());
+  Serial.print("VALUE: ");
+  if(sData.dataType() == "string") {
+    String value = sData.stringData();
+  value.replace("\"", "");
+  Serial.println(value);
+    espComm.sendToMega("{p: \"" + sData.dataPath()+"\", v: \"" + value+"\"}");
+  }
+  
+//   if (sData.dataType() == "int"){
+//     int data = sData.intData();
+//     Serial.println(data);
+//     // espComm.sendToMega(data);
+//   }
+//   else if (sData.dataType() == "float") {
+//     float data = sData.floatData();
+//     Serial.println(data, 5);
+//     // espComm.sendToMega(data);
+//   }
+//   else if (sData.dataType() == "double") {
+//     double data = sData.doubleData();
+//     printf("%.9lf\n", data);
+//     // espComm.sendToMega(data);
+//   }
+//   else if (sData.dataType() == "boolean") {
+//     bool data = sData.boolData();
+//     Serial.println(data == 1 ? "true" : "false");
+//     // espComm.sendToMega(data);
+//   }
+//   else if (sData.dataType() == "string") {
+//     String data = sData.stringData();
+//     Serial.println(data);
+//     espComm.sendToMega(data);
+//   }
+//   else if (sData.dataType() == "json") {
+//     String data = sData.jsonData();
+//     Serial.println(data);
+//     espComm.sendToMega(data);
+//   }
+//   else if (sData.dataType() == "blob")
+//   {
+//     //See blob examples
+//   }
+//   Serial.println();
+}
+
+/*
+void errorQueueCallback (QueueInfo queueinfo){
+  if (queueinfo.isQueueFull())
+  {
+    Serial.println("Queue is full");
+  }
+  Serial.print("Remaining queues: ");
+  Serial.println(queueinfo.totalQueues());
+  Serial.print("Being processed queue ID: ");
+  Serial.println(queueinfo.currentQueueID());  
+  Serial.print("Data type:");
+  Serial.println(queueinfo.dataType()); 
+  Serial.print("Method: ");
+  Serial.println(queueinfo.firebaseMethod());
+  Serial.print("Path: ");
+  Serial.println(queueinfo.dataPath());
+  Serial.println();
+}
+*/
+const int LED_PIN = 2;
+int LED_STATE = HIGH;
+void updateDatabase(String jsonData)
+{
+    // json = "{\"data1-1\":" + String(count1) + ",\"data1-2\":" + String(count1 + 1) + ",\"data1-3\":" + String(count1 + 2) + "}";
+    DynamicJsonDocument doc(1024);
+deserializeJson(doc, jsonData);
+    Serial.println("------------------------------------");
+    Serial.println("Update Data ...");
+    String ref = doc["ref"];
+    if(ref && doc["data"]){
+    if (Firebase.updateNode(firebaseLocationData, DB_BASE_PATH + "/mower/data/"+ref, doc["data"]))
+    {
+      Serial.println("Database Updated");
+      Serial.println("PATH: " + firebaseLocationData.dataPath());
+      Serial.println("TYPE: " + firebaseLocationData.dataType());
+      Serial.print("VALUE: ");
+      if (firebaseLocationData.dataType() == "int")
+        Serial.println(firebaseLocationData.intData());
+      else if (firebaseLocationData.dataType() == "float")
+        Serial.println(firebaseLocationData.floatData(), 5);
+      else if (firebaseLocationData.dataType() == "double")
+        printf("%.9lf\n", firebaseLocationData.doubleData());
+      else if (firebaseLocationData.dataType() == "boolean")
+        Serial.println(firebaseLocationData.boolData() == 1 ? "true" : "false");
+      else if (firebaseLocationData.dataType() == "string")
+        Serial.println(firebaseLocationData.stringData());
+      else if (firebaseLocationData.dataType() == "json")
+        Serial.println(firebaseLocationData.jsonData());
+      Serial.println("------------------------------------");
+      Serial.println();
+    }
+    else
+    {
+      Serial.println("FAILED");
+      Serial.println("REASON: " + firebaseLocationData.errorReason());
+      /*
+      if (Firebase.getErrorQueueID(firebaseLocationData) > 0)
+      {
+        Serial.println("Error Queue ID: " + String(Firebase.getErrorQueueID(firebaseLocationData)));
+      }
+      */
+      Serial.println("------------------------------------");
+      Serial.println();
+    }
+    }
+}
+void dataChangeCb(String data)
+{
+    updateDatabase(data);
+}
+void setup()
+{
+
+  Serial.begin(LOG_BAUD_RATE);
+ 
+  pinMode(LED_PIN,OUTPUT);
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    LED_STATE = !LED_STATE;
+  digitalWrite(LED_PIN, LED_STATE);
+    delay(300);
+  }
+  Serial.println();
+  Serial.print("Connected with IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.println();
+  digitalWrite(LED_PIN, HIGH);
+
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  Firebase.reconnectWiFi(true);
+
+  //Firebase.setMaxRetry(firebaseLocationData, 3);
+  //Firebase.setMaxErrorQueue(firebaseLocationData, 10);
+  //Firebase.beginAutoRunErrorQueue(firebaseLocationData, errorQueueCallback);
+
+  
+  Serial.println("------------------------------------");
+  Serial.println("Begin stream ...");
+  if (!Firebase.beginStream(firebaseMotionCommands, DB_BASE_PATH + "/mower/commands"))
+  {
+    Serial.println("FAILED");
+    Serial.println("REASON: " + firebaseMotionCommands.errorReason());
+    Serial.println();
+  }
+  else
+  {
+    Serial.println("Stream started");
+    Serial.println("------------------------------------");
+    Serial.println();
+  }
+
+  //Firebase.setStreamCallback(firebaseMotionCommands, streamCallback);
+  Firebase.setStreamCallback(firebaseMotionCommands, streamCallback, streamTimeoutCallback);
+
+  espComm.setup();
+  // espComm.setDataUpdateCallback(&dataChangeCb);
+
+}
+
+
+
+void loop()
+{
+  espComm.run();
+  // if(espComm.megaDataAvailable()){
+  //   byte megaData = espComm.getDataFromMega();
+  //   Serial.print("ESP Recieved from MEGA: ");
+  //   Serial.println(megaData);
+  // }
+}
