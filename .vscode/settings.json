@@ -1,0 +1,9 @@
+{
+    "clang.cxxflags": [
+        "-I/Volumes/dev/elyir-mower/Unity/src", // header files
+        "-I/Volumes/dev/elyir-mower/src", // header files
+        "-I/Volumes/dev/elyir-mower/googletest/googletest/include" // header files
+    ],
+
+    "code-runner.runInTerminal": true
+}

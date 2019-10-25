@@ -12,8 +12,8 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "/Volumes/Dev/elyir-mower/.pioenvs/myuno/firmware.elf",
-            "toolchainBinDir": "/Users/temi/.platformio/packages/toolchain-atmelavr/bin",
+            "executable": "/Volumes/dev/elyir-mower/.pio/build/googletest_esp32/firmware.elf",
+            "toolchainBinDir": "/Users/temiadeyeri/.platformio/packages/toolchain-xtensa32/bin",
             "preLaunchTask": {
                 "type": "PlatformIO",
                 "task": "Pre-Debug"
@@ -24,8 +24,8 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "/Volumes/Dev/elyir-mower/.pioenvs/myuno/firmware.elf",
-            "toolchainBinDir": "/Users/temi/.platformio/packages/toolchain-atmelavr/bin",
+            "executable": "/Volumes/dev/elyir-mower/.pio/build/googletest_esp32/firmware.elf",
+            "toolchainBinDir": "/Users/temiadeyeri/.platformio/packages/toolchain-xtensa32/bin",
             "internalConsoleOptions": "openOnSessionStart"
         }
     ]
